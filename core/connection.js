@@ -602,13 +602,29 @@ Blockly.Connection.prototype.checkType_ = function(otherConnection) {
       !otherConnection.sourceBlock_.isMovable()) {
     return false;
   }
-  if (!this.check_ || !otherConnection.check_) {
-    // One or both sides are promiscuous enough that anything will fit.
-    return true;
+  
+  var thisCheck = this.check_,
+    otherCheck = otherConnection.check_;
+    
+  // typechecks are more strict with statements than values now. They won't connect
+  // if only a single statement is 'any'.  They both must be any or contain any.
+  if (this.type == Blockly.NEXT_STATEMENT || this.type == Blockly.PREVIOUS_STATEMENT) {
+    if (!thisCheck && !otherCheck)
+      return true;
+    if (!thisCheck)
+        thisCheck = [null];
+    else if (!otherCheck)
+        otherCheck = [null];
+  }
+  else {
+    if (!thisCheck || !otherCheck) {
+        // One or both sides are promiscuous enough that anything will fit.
+        return true;
+    }
   }
   // Find any intersection in the check lists.
-  for (var i = 0; i < this.check_.length; i++) {
-    if (otherConnection.check_.indexOf(this.check_[i]) != -1) {
+  for (var i = 0; i < thisCheck.length; i++) {
+    if (otherCheck.indexOf(thisCheck[i]) != -1) {
       return true;
     }
   }
